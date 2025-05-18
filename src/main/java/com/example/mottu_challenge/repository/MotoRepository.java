@@ -5,8 +5,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
+
 public interface MotoRepository extends JpaRepository<Moto, Long>, JpaSpecificationExecutor<Moto> {
     Page<Moto> findByTipo(String tipo, Pageable pageable);
     Page<Moto> findByStatus(String status, Pageable pageable);
+    List<Moto> findByStatus(String status);
+    List<Moto> findByModeloContainingIgnoreCase(String modelo);
+    List<Moto> findByStatusAndModeloContainingIgnoreCase(String status, String modelo);
+
 }
 
