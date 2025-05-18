@@ -27,5 +27,11 @@ public class GlobalExceptionHandler {
         });
         return ResponseEntity.badRequest().body(erros);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGeneric(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erro interno: " + ex.getMessage());
+    }
 }
 
