@@ -5,10 +5,13 @@ import com.example.mottu_challenge.model.Moto;
 import com.example.mottu_challenge.repository.MotoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import com.example.mottu_challenge.repository.DispositivoIoTRepository;
+
+import java.util.List;
 
 @Service
 public class MotoService {
@@ -19,6 +22,7 @@ public class MotoService {
     @Autowired
     private DispositivoIoTRepository dispositivoRepository;
 
+    @CacheEvict(value = "motos", allEntries = true)
     public MotoDTO salvar(MotoDTO dto) {
         Moto moto = converterParaEntidade(dto);
         return converterParaDTO(motoRepository.save(moto));
@@ -35,6 +39,7 @@ public class MotoService {
         return motoRepository.findAll(pageable).map(this::converterParaDTO);
     }
 
+    @CacheEvict(value = "motos", allEntries = true)
     public void excluir(Long id) {
         if (!motoRepository.existsById(id)) {
             throw new EntityNotFoundException("Moto não encontrada");
@@ -42,6 +47,7 @@ public class MotoService {
         motoRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "motos", allEntries = true)
     public MotoDTO atualizar(Long id, MotoDTO dto) {
         Moto moto = motoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Moto não encontrada"));
         moto.setPlaca(dto.getPlaca());
@@ -111,6 +117,45 @@ public class MotoService {
             return motoRepository.findAll(pageable).map(this::converterParaDTO);
         }
     }
+
+    private MotoDTO toDTO(Moto moto) {
+        MotoDTO dto = new MotoDTO();
+        dto.setId(moto.getId());
+        dto.setModelo(moto.getModelo());
+        dto.setPlaca(moto.getPlaca());
+        dto.setStatus(moto.getStatus());
+        return dto;
+    }
+
+    private Moto toEntity(MotoDTO dto) {
+        Moto moto = new Moto();
+        moto.setId(dto.getId());
+        moto.setModelo(dto.getModelo());
+        moto.setPlaca(dto.getPlaca());
+        moto.setStatus(dto.getStatus());
+        return moto;
+    }
+
+
+    @Cacheable("motos")
+    public Page<MotoDTO> listarPaginado(Pageable pageable) {
+        return motoRepository.findAll(pageable).map(this::toDTO);
+    }
+
+    public List<MotoDTO> buscarPorStatusOuModelo(String status, String modelo) {
+        List<Moto> motos;
+        if (status != null && modelo != null) {
+            motos = motoRepository.findByStatusAndModeloContainingIgnoreCase(status, modelo);
+        } else if (status != null) {
+            motos = motoRepository.findByStatus(status);
+        } else if (modelo != null) {
+            motos = motoRepository.findByModeloContainingIgnoreCase(modelo);
+        } else {
+            motos = motoRepository.findAll();
+        }
+        return motos.stream().map(this::toDTO).toList();
+    }
+
 
 }
 
