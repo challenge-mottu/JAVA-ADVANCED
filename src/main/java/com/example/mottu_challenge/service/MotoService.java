@@ -118,14 +118,26 @@ public class MotoService {
         }
     }
 
-    private MotoDTO toDTO(Moto moto) {
+    public MotoDTO toDTO(Moto moto) {
         MotoDTO dto = new MotoDTO();
         dto.setId(moto.getId());
-        dto.setModelo(moto.getModelo());
         dto.setPlaca(moto.getPlaca());
+        dto.setTipo(moto.getTipo());
         dto.setStatus(moto.getStatus());
+        dto.setDataCadastro(moto.getDataCadastro());
+        dto.setAno(moto.getAno());
+        dto.setCor(moto.getCor());
+        dto.setModelo(moto.getModelo());
+        dto.setTag(moto.getTag());
+
+        // Atenção aqui:
+        if (moto.getDispositivo() != null) {
+            dto.setIdDispositivo(moto.getDispositivo().getId());
+        }
+
         return dto;
     }
+
 
     private Moto toEntity(MotoDTO dto) {
         Moto moto = new Moto();
